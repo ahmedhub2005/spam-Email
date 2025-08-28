@@ -1,25 +1,25 @@
 import streamlit as st
 import string
 import joblib
+import nltk
+import re
+import pandas as pd
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-import nltk
-nltk.download('punkt')
-
 
 # -------------------------
-# Download NLTK data (run once)
+# NLTK Resource Setup
 # -------------------------
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
-nltk.download('omw-1.4')
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
+def download_nltk_resources():
+    resources = ['punkt', 'stopwords', 'wordnet', 'omw-1.4']
+    for resource in resources:
+        try:
+            nltk.data.find(f'tokenizers/{resource}' if resource == 'punkt' else f'corpora/{resource}')
+        except LookupError:
+            nltk.download(resource)
 
+download_nltk_resources()
 
 # -------------------------
 # Load Model and Vectorizer
@@ -39,10 +39,11 @@ stopwords_en = set(stopwords.words("english"))
 lemmatizer = WordNetLemmatizer()
 
 def clean_text_lemma(text):
-    text = "".join([char.lower() for char in text if char not in string.punctuation])
+    text = text.lower()
+    text = re.sub(r"[^\w\s]", "", text)  # remove punctuation
     tokens = word_tokenize(text)
-    text = " ".join([lemmatizer.lemmatize(word) for word in tokens if word not in stopwords_en])
-    return text
+    tokens = [lemmatizer.lemmatize(word) for word in tokens if word not in stopwords_en and word.isalpha()]
+    return " ".join(tokens)
 
 # -------------------------
 # Streamlit UI
@@ -81,6 +82,9 @@ if st.button("🚀 Classify Message"):
         prob_ham = model.predict_proba(vect_text)[0][0]
 
         # Show Results
+        label = "Spam" if prediction == "spam" else "Ham"
+        confidence = prob_spam if prediction == "spam" else prob_ham
+
         if prediction == "spam":
             st.error(f"🚨 **Spam Detected!**")
         else:
@@ -88,9 +92,20 @@ if st.button("🚀 Classify Message"):
 
         st.markdown("---")
         st.subheader("📊 Prediction Confidence")
-        st.progress(float(prob_spam))  # visual confidence bar
+        st.metric(label=f"Prediction: {label}", value=f"{confidence*100:.2f}% Confidence")
+        st.progress(float(prob_spam))
         st.write(f"Spam Probability: **{prob_spam*100:.2f}%**")
         st.write(f"Ham Probability: **{prob_ham*100:.2f}%**")
+
+        # Optional: Downloadable Result
+        result_df = pd.DataFrame({
+            "Message": [user_input],
+            "Cleaned": [cleaned],
+            "Prediction": [prediction],
+            "Spam Probability": [prob_spam],
+            "Ham Probability": [prob_ham]
+        })
+        st.download_button("📥 Download Result as CSV", result_df.to_csv(index=False), file_name="spam_result.csv")
 
 # -------------------------
 # Sidebar Info
@@ -102,6 +117,10 @@ st.sidebar.markdown("""
 - 📌 **Features:** TF-IDF Vectorizer  
 - 🚀 Built with **Streamlit + scikit-learn**
 """)
+
+with st.expander("ℹ️ What does 'Ham' mean?"):
+    st.write("In spam detection, 'Ham' refers to legitimate, non-spam messages.")
+
 
 
 
