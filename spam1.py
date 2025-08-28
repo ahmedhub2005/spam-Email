@@ -41,7 +41,7 @@ lemmatizer = WordNetLemmatizer()
 def clean_text_lemma(text):
     text = text.lower()
     text = re.sub(r"[^\w\s]", "", text)  # remove punctuation
-    tokens = word_tokenize(text)
+    tokens = text.split()
     tokens = [lemmatizer.lemmatize(word) for word in tokens if word not in stopwords_en and word.isalpha()]
     return " ".join(tokens)
 
@@ -120,6 +120,7 @@ st.sidebar.markdown("""
 
 with st.expander("ℹ️ What does 'Ham' mean?"):
     st.write("In spam detection, 'Ham' refers to legitimate, non-spam messages.")
+
 
 
 
