@@ -15,6 +15,11 @@ nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('omw-1.4')
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt')
+
 
 # -------------------------
 # Load Model and Vectorizer
@@ -97,5 +102,6 @@ st.sidebar.markdown("""
 - 📌 **Features:** TF-IDF Vectorizer  
 - 🚀 Built with **Streamlit + scikit-learn**
 """)
+
 
 
