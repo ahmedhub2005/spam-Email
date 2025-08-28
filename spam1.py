@@ -1,10 +1,12 @@
 import streamlit as st
 import string
 import joblib
-import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+import nltk
+nltk.download('punkt')
+
 
 # -------------------------
 # Download NLTK data (run once)
@@ -95,4 +97,5 @@ st.sidebar.markdown("""
 - 📌 **Features:** TF-IDF Vectorizer  
 - 🚀 Built with **Streamlit + scikit-learn**
 """)
+
 
